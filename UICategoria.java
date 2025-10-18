@@ -13,6 +13,3 @@ public class UICategoria {
         scn = new Scanner(System.in);
     }
 }
-
-asaasnjika PINTO
-
