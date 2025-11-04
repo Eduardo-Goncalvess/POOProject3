@@ -23,7 +23,7 @@ public class Empresa {
         this.nome = outra.nome;
         this.telefone = outra.telefone;
         this.cidade = outra.cidade;
-        this.produtos = new ArrayList<>(outra.produtos);
+        this.produtos = (outra.produtos != null) ? new ArrayList<>(outra.produtos) : new ArrayList<Produto>();
     }
 
     static public Empresa getInstance(int codigo, String nome, int telefone, String cidade) {
@@ -42,24 +42,12 @@ public class Empresa {
         return nome;
     }
 
-    public int getTelefone() {
-        return telefone;
-    }
-
-    public String getCidade() {
-        return cidade;
-    }
-
     public List<Produto> getProdutos() {
         return produtos;
     }
 
-    public void setCodigo(int codigo) {
-        this.codigo = codigo;
-    }
-
     public void setNome(String nome) {
-            this.nome = nome;
+        this.nome = nome;
     }
 
     public void setTelefone(int telefone) {
@@ -70,17 +58,28 @@ public class Empresa {
         this.cidade = cidade;
     }
 
-    public void setProdutos(List<Produto> produtos) {
-        this.produtos = produtos;
-    }
-
-    public void adicionarProduto(Produto produto) {
+    public boolean adicionarProduto(Produto produto) {
         if (produto != null && !produtos.contains(produto)) {
             produtos.add(produto);
+            return true;
         }
+        return false;
     }
 
-    public void removerProduto(Produto produto) {
-        produtos.remove(produto);
+    public boolean removerProduto(Produto produto) {
+        if (produto != null && produtos.contains(produto)) {
+            produtos.remove(produto);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%-6d | %-15s | %-8d | %-12s",
+                codigo,
+                nome.length() > 15 ? nome.substring(0, 12) + "..." : nome,
+                telefone,
+                cidade.length() > 12 ? cidade.substring(0, 9) + "..." : cidade);
     }
 }
