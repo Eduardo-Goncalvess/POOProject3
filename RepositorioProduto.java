@@ -164,8 +164,14 @@ public class RepositorioProduto {
         return false;
     }
 
-    public boolean remover(int codigo) {
-        return produtos.remove(codigo) != null;
+    public boolean reporEstoque(int codigo, int quantidade) {
+        Produto produto = getProduto(codigo);
+        if (produto != null && quantidade > 0) {
+            int novaQuantidade = produto.getQuantidade() + quantidade;
+            produto.setQuantidade(novaQuantidade);
+            return true;
+        }
+        return false;
     }
 
     public int getProxCodigo() {

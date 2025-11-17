@@ -14,7 +14,7 @@ public class RepositorioEmpresa {
 
     private RepositorioEmpresa() {
         this.empresas = new ArrayList<Empresa>();
-        this.proximoCodigo = 1;
+        this.proximoCodigo = 10;
     }
 
     public static RepositorioEmpresa getInstance() {

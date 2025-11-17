@@ -11,27 +11,42 @@ public class ControleCategoria {
         this.repoCategoria = RepositorioCategoria.getInstance();
     }
 
-    public Categoria getInstance(int codigo, String nome, String descricao) {
-        return Categoria.getInstance(codigo, nome, descricao);
-    }
-
-    public boolean add(Categoria a) {
-        if (repoCategoria.buscarPorNome(a)) {
-            return false;
+    public Categoria getInstance(int codigo, String nome, String descricao) throws ValidacaoException {
+        Categoria categoria = Categoria.getInstance(codigo, nome, descricao);
+        if (categoria == null) {
+            throw new ValidacaoException("Dados inválidos para criar categoria");
         }
-        return repoCategoria.add(a);
+        return categoria;
     }
 
-    public boolean remove(int codigo) {
-        return repoCategoria.remove(codigo);
+    public boolean add(Categoria a) throws CadastroException, ValidacaoException {
+        if (a == null) {
+            throw new ValidacaoException("Categoria não pode ser nula");
+        }
+        if (repoCategoria.buscarPorNome(a)) {
+            throw new CadastroException("Já existe uma categoria com este nome: " + a.getNome());
+        }
+        boolean resultado = repoCategoria.add(a);
+        if (!resultado) {
+            throw new CadastroException("Falha ao cadastrar categoria");
+        }
+        return resultado;
     }
 
-    public Categoria getCategoria(int codigo) {
-        return repoCategoria.getCategoria(codigo);
+    public boolean remove(int codigo) throws NegocioException {
+        boolean resultado = repoCategoria.remove(codigo);
+        if (!resultado) {
+            throw new NegocioException("Categoria não encontrada ou não pode ser removida. Código: " + codigo);
+        }
+        return resultado;
     }
 
-    public boolean excluirCategoria(int codigo) {
-        return repoCategoria.remover(codigo);
+    public Categoria getCategoria(int codigo) throws NegocioException {
+        Categoria categoria = repoCategoria.getCategoria(codigo);
+        if (categoria == null) {
+            throw new NegocioException("Categoria não encontrada. Código: " + codigo);
+        }
+        return categoria;
     }
 
     public List<Categoria> listarCategorias() {
@@ -47,12 +62,26 @@ public class ControleCategoria {
         return repoCategoria.verificarNome(nome);
     }
 
-    public boolean atualizarNome(int codigo, String novoNome) {
-        return repoCategoria.atualizarNome(codigo, novoNome);
+    public boolean atualizarNome(int codigo, String novoNome) throws NegocioException, ValidacaoException {
+        if (novoNome == null || novoNome.trim().isEmpty()) {
+            throw new ValidacaoException("Nome não pode ser vazio");
+        }
+        boolean resultado = repoCategoria.atualizarNome(codigo, novoNome);
+        if (!resultado) {
+            throw new NegocioException("Falha ao atualizar nome da categoria");
+        }
+        return resultado;
     }
 
-    public boolean atualizarDescricao(int codigo, String novaDescricao) {
-        return repoCategoria.atualizarDescricao(codigo, novaDescricao);
+    public boolean atualizarDescricao(int codigo, String novaDescricao) throws NegocioException, ValidacaoException {
+        if (novaDescricao == null || novaDescricao.trim().isEmpty()) {
+            throw new ValidacaoException("Descrição não pode ser vazia");
+        }
+        boolean resultado = repoCategoria.atualizarDescricao(codigo, novaDescricao);
+        if (!resultado) {
+            throw new NegocioException("Falha ao atualizar descrição da categoria");
+        }
+        return resultado;
     }
 
     public int getProxCodigo() {

@@ -93,10 +93,6 @@ public class RepositorioCategoria {
         return false;
     }
 
-    public boolean remover(int codigo) {
-        return categorias.remove(codigo) != null;
-    }
-
     public List<Categoria> listarCategorias() {
         return categorias;
     }

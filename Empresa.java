@@ -3,26 +3,16 @@ package TrabalhoAeD.controle;
 import java.util.List;
 import java.util.ArrayList;
 
-public class Empresa {
-    private int codigo;
-    private String nome;
-    private int telefone;
-    private String cidade;
+public class Empresa extends Usuario {
     private List<Produto> produtos;
 
     private Empresa(int codigo, String nome, int telefone, String cidade) {
-        this.codigo = codigo;
-        this.nome = nome;
-        this.telefone = telefone;
-        this.cidade = cidade;
+        super(codigo, nome, telefone, cidade);
         this.produtos = new ArrayList<Produto>();
     }
 
     public Empresa(Empresa outra) {
-        this.codigo = outra.codigo;
-        this.nome = outra.nome;
-        this.telefone = outra.telefone;
-        this.cidade = outra.cidade;
+        super(outra);
         this.produtos = (outra.produtos != null) ? new ArrayList<>(outra.produtos) : new ArrayList<Produto>();
     }
 
@@ -34,28 +24,8 @@ public class Empresa {
         }
     }
 
-    public int getCodigo() {
-        return codigo;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
     public List<Produto> getProdutos() {
         return produtos;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public void setTelefone(int telefone) {
-        this.telefone = telefone;
-    }
-
-    public void setCidade(String cidade) {
-        this.cidade = cidade;
     }
 
     public boolean adicionarProduto(Produto produto) {
@@ -76,10 +46,6 @@ public class Empresa {
 
     @Override
     public String toString() {
-        return String.format("%-6d | %-15s | %-8d | %-12s",
-                codigo,
-                nome.length() > 15 ? nome.substring(0, 12) + "..." : nome,
-                telefone,
-                cidade.length() > 12 ? cidade.substring(0, 9) + "..." : cidade);
+        return super.toString();
     }
 }

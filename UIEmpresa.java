@@ -2,6 +2,9 @@ package TrabalhoAeD.ui;
 
 import TrabalhoAeD.controle.Empresa;
 import TrabalhoAeD.controle.Sistema;
+import TrabalhoAeD.controle.CadastroException;
+import TrabalhoAeD.controle.ValidacaoException;
+import TrabalhoAeD.controle.NegocioException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -10,19 +13,19 @@ public class UIEmpresa {
     private Scanner scn;
     private static UIEmpresa instance;
 
-    private UIEmpresa() {
+    private UIEmpresa() throws ValidacaoException, CadastroException, NegocioException {
         sis = Sistema.getInstance();
         scn = new Scanner(System.in);
     }
 
-    public static UIEmpresa getInstance() {
+    public static UIEmpresa getInstance() throws ValidacaoException, CadastroException, NegocioException {
         if (instance == null) {
             instance = new UIEmpresa();
         }
         return instance;
     }
 
-    public void cadastrarEmpresa() {
+    public void cadastrarEmpresa() throws CadastroException, ValidacaoException {
         System.out.println("\n=== CADASTRAR EMPRESA ===");
         int codigo = sis.getProxCodigoEmpresa();
         System.out.print("Código: " + codigo);
@@ -31,12 +34,10 @@ public class UIEmpresa {
         System.out.print("Nome: ");
         String nome = scn.next();
         if (nome.isEmpty()) {
-            System.out.println("Nome vazio.");
-            return;
+            throw new ValidacaoException("Nome vazio.");
         }
         if (sis.verificarNomeEmpresa(nome)) {
-            System.out.println("Nome já existente!");
-            return;
+            throw new CadastroException("Nome já existente!");
         }
 
         System.out.print("Telefone (apenas números, 4 dígitos): ");
@@ -48,16 +49,14 @@ public class UIEmpresa {
 
         System.out.print("Cidade: ");
         String cidade = scn.nextLine();
-        scn.next();
+        cidade = scn.nextLine();
 
-        if (sis.cadastrarEmpresa(sis.getInstanceEmpresa(codigo, nome, telefone, cidade))) {
-            System.out.println("Empresa cadastrada com sucesso.");
-        } else {
-            System.out.println("Falha no cadastro da empresa.");
-        }
+        Empresa novaEmpresa = sis.getInstanceEmpresa(codigo, nome, telefone, cidade);
+        sis.cadastrarEmpresa(novaEmpresa);
+        System.out.println("Empresa cadastrada com sucesso.");
     }
 
-    public void removerEmpresa() {
+    public void removerEmpresa() throws NegocioException, ValidacaoException, CadastroException {
         System.out.println("\n=== REMOVER EMPRESA ===");
         System.out.print("Lista de Empresas: ");
         listarEmpresas();
@@ -65,42 +64,17 @@ public class UIEmpresa {
         System.out.print("Informe o código da empresa que deseja remover: ");
         int cd = scn.nextInt();
         if (cd < 0) {
-            System.out.println("Código inválido.");
-            return;
+            throw new ValidacaoException("Código inválido.");
         }
 
         UIProduto uiProduto = UIProduto.getInstance();
         uiProduto.removerFornecedorDosProdutos(cd);
 
-        if (sis.removerEmpresa(cd)) {
-            System.out.println("Empresa removida com sucesso.");
-        } else {
-            System.out.println("Falha ao remover empresa.");
-        }
+        sis.removerEmpresa(cd);
+        System.out.println("Empresa removida com sucesso.");
     }
 
-    public void listarEmpresas() {
-        System.out.println("\n=== LISTA DE EMPRESAS ===");
-
-        List<Empresa> empresas = sis.listarEmpresas();
-
-        if (empresas.isEmpty()) {
-            System.out.println("Nenhuma empresa cadastrada.");
-            return;
-        }
-
-        System.out.println("CÓDIGO | NOME | TELEFONE | CIDADE");
-        System.out.println("----------------------------------");
-
-        for (int i = 0; i < empresas.size(); i++) {
-            Empresa empresa = empresas.get(i);
-            System.out.println(empresa.toString());
-        }
-
-        System.out.println("Total: " + empresas.size() + " empresas");
-    }
-
-    public void alterarEmpresa() {
+    public void alterarEmpresa() throws ValidacaoException, NegocioException, CadastroException {
         System.out.println("\n=== ALTERAR EMPRESA ===");
         listarEmpresas();
 
@@ -109,8 +83,7 @@ public class UIEmpresa {
 
         Empresa empresa = sis.getEmpresa(codigo);
         if (empresa == null) {
-            System.out.println("Empresa não encontrada!");
-            return;
+            throw new NegocioException("Empresa não encontrada!");
         }
 
         int opcao;
@@ -140,6 +113,75 @@ public class UIEmpresa {
         } while (opcao != 4);
     }
 
+    private void alterarNome(int codigo) throws ValidacaoException, NegocioException, CadastroException {
+        System.out.print("Novo nome: ");
+        String novoNome = scn.nextLine();
+
+        if (novoNome.isEmpty()) {
+            throw new ValidacaoException("Nome não pode ser vazio.");
+        }
+
+        Empresa empresaAtual = sis.getEmpresa(codigo);
+        if (!novoNome.equalsIgnoreCase(empresaAtual.getNome()) && sis.verificarNomeEmpresa(novoNome)) {
+            throw new CadastroException("Já existe uma empresa com este nome!");
+        }
+
+        boolean sucesso = sis.atualizarNomeEmpresa(codigo, novoNome);
+        if (!sucesso) {
+            throw new NegocioException("Falha ao alterar nome.");
+        }
+        System.out.println("Nome alterado com sucesso.");
+    }
+
+    private void alterarTelefone(int codigo) throws ValidacaoException, NegocioException {
+        System.out.print("Novo telefone (4 dígitos): ");
+        int novoTelefone = scn.nextInt();
+
+        if (novoTelefone < 1000 || novoTelefone > 9999) {
+            throw new ValidacaoException("Telefone deve ter 4 dígitos");
+        }
+
+        boolean sucesso = sis.atualizarTelefoneEmpresa(codigo, novoTelefone);
+        if (!sucesso) {
+            throw new NegocioException("Falha ao alterar telefone.");
+        }
+        System.out.println("Telefone alterado com sucesso.");
+    }
+
+    private void alterarCidade(int codigo) throws ValidacaoException, NegocioException {
+        System.out.print("Nova cidade: ");
+        scn.nextLine();
+        String novaCidade = scn.nextLine();
+
+        if (novaCidade.isEmpty()) {
+            throw new ValidacaoException("Cidade não pode ser vazia.");
+        }
+
+        boolean sucesso = sis.atualizarCidadeEmpresa(codigo, novaCidade);
+        if (!sucesso) {
+            throw new NegocioException("Falha ao alterar cidade.");
+        }
+        System.out.println("Cidade alterada com sucesso.");
+    }
+
+    public void listarEmpresas() {
+        System.out.println("\n=== LISTA DE EMPRESAS ===");
+        List<Empresa> empresas = sis.listarEmpresas();
+
+        if (empresas.isEmpty()) {
+            System.out.println("Nenhuma empresa cadastrada.");
+            return;
+        }
+
+        System.out.println("CÓDIGO | NOME | TELEFONE | CIDADE");
+        System.out.println("----------------------------------");
+        for (int i = 0; i < empresas.size(); i++) {
+            Empresa empresa = empresas.get(i);
+            System.out.println(empresa.toString());
+        }
+        System.out.println("Total: " + empresas.size() + " empresas");
+    }
+
     public int menuAlterarEmpresa() {
         System.out.println("\nO que você deseja alterar?");
         System.out.println("1: Nome");
@@ -150,60 +192,5 @@ public class UIEmpresa {
         int num = scn.nextInt();
         scn.nextLine();
         return num;
-    }
-
-    private void alterarNome(int codigo) {
-        System.out.print("Novo nome: ");
-        String novoNome = scn.nextLine();
-
-        if (novoNome.isEmpty()) {
-            System.out.println("Nome não pode ser vazio.");
-            return;
-        }
-
-        Empresa empresaAtual = sis.getEmpresa(codigo);
-        if (!novoNome.equalsIgnoreCase(empresaAtual.getNome()) && sis.verificarNomeEmpresa(novoNome)) {
-            System.out.println("Já existe uma empresa com este nome!");
-            return;
-        }
-
-        if (sis.atualizarNomeEmpresa(codigo, novoNome)) {
-            System.out.println("Nome alterado com sucesso.");
-        } else {
-            System.out.println("Falha ao alterar nome.");
-        }
-    }
-
-    private void alterarTelefone(int codigo) {
-        System.out.print("Novo telefone (4 dígitos): ");
-        int novoTelefone = scn.nextInt();
-
-        while (novoTelefone < 1000 || novoTelefone > 9999) {
-            System.out.print("Telefone inválido. Tente novamente (4 dígitos): ");
-            novoTelefone = scn.nextInt();
-        }
-
-        if (sis.atualizarTelefoneEmpresa(codigo, novoTelefone)) {
-            System.out.println("Telefone alterado com sucesso.");
-        } else {
-            System.out.println("Falha ao alterar telefone.");
-        }
-    }
-
-    private void alterarCidade(int codigo) {
-        System.out.print("Nova cidade: ");
-        scn.nextLine();
-        String novaCidade = scn.nextLine();
-
-        if (novaCidade.isEmpty()) {
-            System.out.println("Cidade não pode ser vazia.");
-            return;
-        }
-
-        if (sis.atualizarCidadeEmpresa(codigo, novaCidade)) {
-            System.out.println("Cidade alterada com sucesso.");
-        } else {
-            System.out.println("Falha ao alterar cidade.");
-        }
     }
 }
